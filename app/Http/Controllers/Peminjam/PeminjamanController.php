@@ -8,9 +8,12 @@ use App\Models\Alat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Traits\LogsActivity; // ⬅️ panggil trait
 
 class PeminjamanController extends Controller
 {
+    use LogsActivity; // ⬅️ aktifkan trait
+
     // DAFTAR ALAT
     public function daftarAlat()
     {
@@ -28,11 +31,18 @@ class PeminjamanController extends Controller
     // SIMPAN PENGAJUAN PEMINJAMAN
     public function store(Request $request)
     {
-        $request->validate([
-            'alat_id' => 'required|exists:alats,id',
-            'jumlah'  => 'required|integer|min:1',
-            'tanggal_kembali_target' => 'required|date|after:today',
-        ]);
+        $request->validate(
+            [
+                'alat_id' => 'required|exists:alats,id',
+                'jumlah'  => 'required|integer|min:1',
+                'tanggal_kembali_target' => 'required|date|after:today',
+            ],
+            [
+                'tanggal_kembali_target.required' => 'Tanggal kembali target wajib diisi.',
+                'tanggal_kembali_target.date' => 'Tanggal kembali target harus berupa tanggal.',
+                'tanggal_kembali_target.after' => 'Tanggal kembali target harus setelah hari ini.',
+            ]
+        );
 
         $alat = Alat::findOrFail($request->alat_id);
 
@@ -40,13 +50,18 @@ class PeminjamanController extends Controller
             return back()->with('error', 'Stok alat tidak mencukupi');
         }
 
-        Peminjaman::create([
+        $peminjaman = Peminjaman::create([
             'user_id' => Auth::id(),
             'alat_id' => $alat->id,
             'jumlah'  => $request->jumlah,
             'status'  => 'menunggu',
             'tanggal_kembali_target' => $request->tanggal_kembali_target,
         ]);
+
+        // ⬅️ LOG AKTIVITAS
+        $this->logActivity(
+            "Mengajukan peminjaman alat '{$alat->nama}' sebanyak {$request->jumlah} unit (ID Peminjaman #{$peminjaman->id})"
+        );
 
         return redirect()->route('peminjam.riwayat.index')
             ->with('success', 'Pengajuan peminjaman berhasil dikirim');
@@ -75,6 +90,11 @@ class PeminjamanController extends Controller
             'status' => 'menunggu_pengembalian',
         ]);
 
+        // ⬅️ LOG AKTIVITAS
+        $this->logActivity(
+            "Mengajukan pengembalian alat '{$peminjaman->alat->nama}' sebanyak {$peminjaman->jumlah} unit (ID Peminjaman #{$peminjaman->id})"
+        );
+
         return back()->with('success', 'Pengajuan pengembalian berhasil dikirim');
     }
 
@@ -93,6 +113,39 @@ class PeminjamanController extends Controller
 
         $peminjaman->delete();
 
+        // ⬅️ LOG AKTIVITAS
+        $this->logActivity(
+            "Membatalkan peminjaman alat '{$peminjaman->alat->nama}' sebanyak {$peminjaman->jumlah} unit (ID Peminjaman #{$id})"
+        );
+
         return redirect()->back()->with('success', 'Peminjaman berhasil dibatalkan.');
+    }
+
+    // DASHBOARD PEMINJAM
+    public function dashboard()
+    {
+        $userId = Auth::id();
+
+        if (!$userId) {
+            abort(403, 'User belum login');
+        }
+
+        $menunggu = Peminjaman::where('user_id', $userId)
+            ->where('status', 'menunggu')
+            ->count();
+
+        $aktif = Peminjaman::where('user_id', $userId)
+            ->where('status', 'dipinjam')
+            ->count();
+
+        $selesai = Peminjaman::where('user_id', $userId)
+            ->where('status', 'dikembalikan')
+            ->count();
+
+        return view('peminjam.dashboard', compact(
+            'menunggu',
+            'aktif',
+            'selesai'
+        ));
     }
 }

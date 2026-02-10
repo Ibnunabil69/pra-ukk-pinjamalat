@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kategori;
+use App\Traits\LogsActivity; // <--- import trait
 
 class KategoriController extends Controller
 {
+    use LogsActivity; // <--- pakai trait
+
     /**
      * Tampilkan semua kategori
      */
@@ -24,7 +27,6 @@ class KategoriController extends Controller
 
         return view('admin.kategori.index', compact('kategoris'));
     }
-
 
     /**
      * Form tambah kategori baru
@@ -43,9 +45,12 @@ class KategoriController extends Controller
             'nama' => 'required|string|max:255|unique:kategoris,nama',
         ]);
 
-        Kategori::create([
+        $kategori = Kategori::create([
             'nama' => $request->nama,
         ]);
+
+        // Catat log
+        $this->logActivity("Menambahkan kategori '{$kategori->nama}'");
 
         return redirect()->route('admin.kategori.index')->with('success', 'Kategori berhasil ditambahkan!');
     }
@@ -71,6 +76,9 @@ class KategoriController extends Controller
             'nama' => $request->nama,
         ]);
 
+        // Catat log
+        $this->logActivity("Mengubah kategori '{$kategori->nama}'");
+
         return redirect()->route('admin.kategori.index')->with('success', 'Kategori berhasil diperbarui!');
     }
 
@@ -79,7 +87,11 @@ class KategoriController extends Controller
      */
     public function destroy(Kategori $kategori)
     {
+        $nama = $kategori->nama;
         $kategori->delete();
+
+        // Catat log
+        $this->logActivity("Menghapus kategori '{$nama}'");
 
         return redirect()->route('admin.kategori.index')->with('success', 'Kategori berhasil dihapus!');
     }

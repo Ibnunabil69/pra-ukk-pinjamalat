@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Alat;
 use App\Models\Kategori;
+use App\Traits\LogsActivity; // <--- import trait
 
 class AlatController extends Controller
 {
+    use LogsActivity; // <--- pakai trait
+
     // Tampil semua alat
     public function index(Request $request)
     {
@@ -50,7 +53,10 @@ class AlatController extends Controller
             'status' => 'required|in:tersedia,dipinjam',
         ]);
 
-        Alat::create($request->all());
+        $alat = Alat::create($request->all());
+
+        // Catat log
+        $this->logActivity("Menambahkan alat '{$alat->nama}'");
 
         return redirect()->route('admin.alat.index')->with('success', 'Alat berhasil ditambahkan.');
     }
@@ -74,13 +80,20 @@ class AlatController extends Controller
 
         $alat->update($request->all());
 
+        // Catat log
+        $this->logActivity("Mengubah alat '{$alat->nama}'");
+
         return redirect()->route('admin.alat.index')->with('success', 'Alat berhasil diperbarui.');
     }
 
     // Hapus alat
     public function destroy(Alat $alat)
     {
+        $nama = $alat->nama;
         $alat->delete();
+
+        // Catat log
+        $this->logActivity("Menghapus alat '{$nama}'");
 
         return redirect()->route('admin.alat.index')->with('success', 'Alat berhasil dihapus.');
     }

@@ -13,12 +13,12 @@
             </p>
         </div>
 
-        <!-- ALERT -->
+        {{-- <!-- ALERT -->
         @if (session('success'))
             <div class="mb-4 p-4 rounded-lg bg-green-100 text-green-700">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
 
         <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
             <table class="w-full text-sm">

@@ -14,15 +14,34 @@
         </div>
 
 
-        <form action="{{ route('petugas.laporan.cetak') }}" method="GET" target="_blank" class="flex gap-2 mb-4">
-            <input type="date" name="from" class="px-3 py-2 border rounded-lg" required>
-            <input type="date" name="to" class="px-3 py-2 border rounded-lg" required>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Cetak Laporan
-            </button>
+        <form action="{{ route('petugas.laporan.cetak') }}" method="GET" target="_blank"
+            class="bg-white border rounded-xl p-4 mb-6 flex flex-col sm:flex-row sm:items-end gap-4">
+
+            <!-- Periode -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Dari tanggal
+                </label>
+                <input type="date" name="from" required
+                    class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Sampai tanggal
+                </label>
+                <input type="date" name="to" required
+                    class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Button -->
+            <div>
+                <button type="submit"
+                    class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                    Cetak PDF
+                </button>
+            </div>
         </form>
-
-
 
         <!-- TABLE -->
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
@@ -32,7 +51,6 @@
                         <th class="px-6 py-3">#</th>
                         <th class="px-6 py-3">Peminjam</th>
                         <th class="px-6 py-3">Nama Alat</th>
-                        <th class="px-6 py-3">Kategori</th>
                         <th class="px-6 py-3 text-center">Qty</th>
                         <th class="px-6 py-3 text-center">Status</th>
                         <th class="px-6 py-3 text-center">Tanggal Pinjam</th>
@@ -46,7 +64,6 @@
                             <td class="px-6 py-3">{{ $loop->iteration }}</td>
                             <td class="px-6 py-3">{{ $item->user->name }}</td>
                             <td class="px-6 py-3">{{ $item->alat->nama }}</td>
-                            <td class="px-6 py-3">{{ $item->alat->kategori->nama ?? '-' }}</td>
                             <td class="px-6 py-3 text-center">{{ $item->jumlah }}</td>
                             <td class="px-6 py-3 text-center">
                                 @php
@@ -54,8 +71,8 @@
                                         'menunggu' => 'bg-yellow-100 text-yellow-700',
                                         'dipinjam' => 'bg-blue-100 text-blue-700',
                                         'disetujui' => 'bg-green-100 text-green-700',
+                                        'dikembalikan' => 'bg-green-100 text-green-700',
                                         'ditolak' => 'bg-red-100 text-red-700',
-                                        'dikembalikan' => 'bg-indigo-100 text-indigo-700',
                                         default => 'bg-gray-100 text-gray-700',
                                     };
                                 @endphp

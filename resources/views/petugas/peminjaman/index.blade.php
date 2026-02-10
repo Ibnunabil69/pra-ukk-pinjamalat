@@ -74,59 +74,159 @@
         </div>
 
         <!-- SIMPLE MODAL -->
-        <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white rounded-lg shadow-lg w-96 p-6 relative">
+        <!-- MODAL -->
+        <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+
+            <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+
+                <!-- CLOSE -->
                 <button onclick="closeModal()"
-                    class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                    &times;
+                </button>
 
                 @foreach ($peminjamans as $peminjaman)
                     <div id="modal-content-{{ $peminjaman->id }}" class="hidden">
-                        <h2 class="text-lg font-bold mb-2">{{ $peminjaman->alat->nama }}</h2>
-                        <p><strong>Peminjam:</strong> {{ $peminjaman->user->name }}</p>
-                        <p><strong>Kategori:</strong> {{ $peminjaman->alat->kategori->nama ?? '-' }}</p>
-                        <p><strong>Qty:</strong> {{ $peminjaman->jumlah }}</p>
-                        <p><strong>Status:</strong> {{ ucfirst($peminjaman->status) }}</p>
-                        <p><strong>Tanggal pengajuan:</strong> {{ $peminjaman->created_at->format('d-m-Y') }}</p>
-                        <p><strong>Tanggal target kembali:</strong>
-                            {{ $peminjaman->tanggal_kembali_target?->format('d-m-Y') ?? '-' }}</p>
 
+                        <!-- HEADER -->
+                        <div class="mb-5">
+                            <h2 class="text-xl font-semibold text-gray-900">
+                                {{ $peminjaman->alat->nama }}
+                            </h2>
+                            <p class="text-sm text-gray-500">
+                                Detail pengajuan peminjaman
+                            </p>
+                        </div>
+
+                        <!-- INFO -->
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Peminjam</span>
+                                <span class="font-medium text-gray-900">
+                                    {{ $peminjaman->user->name }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Kategori</span>
+                                <span class="text-gray-700">
+                                    {{ $peminjaman->alat->kategori->nama ?? '-' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Jumlah</span>
+                                <span class="text-gray-700">
+                                    {{ $peminjaman->jumlah }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Status</span>
+                                <span class="font-semibold capitalize text-gray-800">
+                                    {{ $peminjaman->status }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Tanggal Pengajuan</span>
+                                <span class="text-gray-700">
+                                    {{ $peminjaman->created_at->format('d M Y') }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Target Kembali</span>
+                                <span class="text-gray-700">
+                                    {{ $peminjaman->tanggal_kembali_target?->format('d M Y') ?? '-' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- ACTION -->
                         @if (strtolower($peminjaman->status) === 'menunggu')
-                            <div class="mt-3 space-y-2">
-                                <!-- Input tanggal -->
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Tanggal Kembali Target:</label>
-                                <input type="date" name="tanggal_kembali_target"
-                                    value="{{ old('tanggal_kembali_target', $peminjaman->tanggal_kembali_target?->format('Y-m-d')) }}"
-                                    min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="mt-6 pt-4 border-t space-y-4">
 
-                                <div class="flex gap-2">
-                                    <!-- Form Reject -->
+                                <div>
+                                    <label class="block mb-1 text-sm font-medium text-gray-700">
+                                        Tanggal Kembali Target
+                                    </label>
+                                    <input type="date" id="tanggal-{{ $peminjaman->id }}"
+                                        value="{{ $peminjaman->tanggal_kembali_target?->format('Y-m-d') }}"
+                                        min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
+                                        class="w-full rounded-lg border-gray-300 text-sm
+           focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <!-- REJECT -->
                                     <form action="{{ route('petugas.peminjaman.reject', $peminjaman) }}" method="POST"
                                         class="flex-1">
                                         @csrf
                                         <button type="submit"
-                                            class="w-full px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
+                                            class="w-full rounded-lg border border-red-500 py-2
+                                           text-red-600 font-medium hover:bg-red-50 transition">
                                             Tolak
                                         </button>
                                     </form>
 
-                                    <!-- Form Approve -->
+                                    <!-- APPROVE -->
                                     <form action="{{ route('petugas.peminjaman.approve', $peminjaman) }}" method="POST"
                                         class="flex-1">
                                         @csrf
                                         <input type="hidden" name="tanggal_kembali_target"
-                                            value="{{ old('tanggal_kembali_target', $peminjaman->tanggal_kembali_target?->format('Y-m-d')) }}">
+                                            id="hidden-tanggal-{{ $peminjaman->id }}">
                                         <button type="submit"
-                                            class="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+                                            class="w-full rounded-lg bg-blue-600 py-2
+                                           text-white font-medium hover:bg-blue-700 transition">
                                             Setujui
                                         </button>
                                     </form>
                                 </div>
+
                             </div>
                         @endif
 
+                        @if (in_array(strtolower($peminjaman->status), ['dipinjam', 'menunggu_pengembalian']))
+                            <div class="mt-6 pt-4 border-t space-y-3">
+
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Target Kembali</span>
+                                    <span class="text-gray-700">
+                                        {{ $peminjaman->tanggal_kembali_target?->format('d M Y') }}
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Telat</span>
+                                    <span class="font-medium text-red-600">
+                                        {{ $peminjaman->telat_hari }} hari
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Denda</span>
+                                    <span class="font-semibold text-red-600">
+                                        Rp {{ number_format($peminjaman->denda, 0, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <form method="POST" action="{{ route('petugas.pengembalian.proses', $peminjaman) }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full mt-3 rounded-lg bg-green-600 py-2
+                       text-white font-medium hover:bg-green-700 transition">
+                                        Proses Pengembalian
+                                    </button>
+                                </form>
+
+                            </div>
+                        @endif
+
+
                     </div>
                 @endforeach
+
             </div>
         </div>
 
@@ -134,15 +234,32 @@
 
     <script>
         function showModal(id) {
-            document.getElementById('modal').style.display = 'flex';
-            // Hide all content
-            document.querySelectorAll('[id^="modal-content-"]').forEach(el => el.style.display = 'none');
-            // Show current content
-            document.getElementById('modal-content-' + id).style.display = 'block';
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.querySelectorAll('[id^="modal-content-"]').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            const content = document.getElementById('modal-content-' + id);
+            content.classList.remove('hidden');
+
+            const dateInput = document.getElementById('tanggal-' + id);
+            const hiddenInput = document.getElementById('hidden-tanggal-' + id);
+
+            if (dateInput && hiddenInput) {
+                hiddenInput.value = dateInput.value;
+                dateInput.addEventListener('change', function() {
+                    hiddenInput.value = this.value;
+                });
+            }
         }
 
         function closeModal() {
-            document.getElementById('modal').style.display = 'none';
+            const modal = document.getElementById('modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
     </script>
 @endsection

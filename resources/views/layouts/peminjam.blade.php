@@ -4,13 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Dashboard') | Equiply</title>
+    <link rel="icon" href="{{ asset('assets/favicon-equily.svg') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('assets/favicon-equiply.svg') }}" type="image/x-icon">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Remix Icon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -54,13 +57,15 @@
         <!-- MENU -->
         <nav class="flex-1 px-3 py-4 text-sm space-y-6">
 
-            <!-- DASHBOARD -->
-            <a href="/dashboard"
+            <a href="{{ route('dashboard') }}"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg
-            {{ request()->is('dashboard*') ? 'bg-primary-50 text-primary-700 font-medium' : 'text-text-secondary hover:bg-primary-50' }}">
+   {{ request()->routeIs('dashboard', 'peminjam.dashboard')
+       ? 'bg-primary-50 text-primary-700 font-medium'
+       : 'text-text-secondary hover:bg-primary-50' }}">
                 <i class="ri-dashboard-line text-base"></i>
                 Dashboard
             </a>
+
 
             @if (auth()->user()->role === 'peminjam')
                 <div>
@@ -85,34 +90,96 @@
                     </a>
 
                     <!-- Pengembalian -->
-                    <a href="/peminjam/pengembalian"
+                    {{-- <a href="/peminjam/pengembalian"
                         class="flex items-center gap-3 px-3 py-2 rounded-lg
                 {{ request()->is('peminjam/pengembalian*') ? 'bg-primary-50 text-primary-700 font-medium' : 'text-text-secondary hover:bg-primary-50' }}">
                         <i class="ri-refresh-line text-base"></i>
                         Pengembalian Alat
-                    </a>
+                    </a> --}}
                 </div>
             @endif
 
         </nav>
 
-        <!-- LOGOUT -->
-        <form method="POST" action="{{ route('logout') }}" class="p-4 border-t border-border">
-            @csrf
-            <button type="submit"
-                class="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 bg-danger text-white hover:bg-red-700">
+        <!-- LOGOUT AREA -->
+        <div class="p-4 border-t border-border">
+            <button type="button" onclick="openLogoutModal()"
+                class="w-full flex items-center justify-center gap-2
+               rounded-xl py-2.5
+               bg-danger text-white font-medium
+               hover:bg-red-700 transition">
                 <i class="ri-logout-box-r-line"></i>
                 Logout
             </button>
-        </form>
+        </div>
+
 
     </aside>
+    <!-- MODAL LOGOUT -->
+    <div id="logoutModal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/50">
 
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 animate-fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-red-100 text-red-600">
+                    <i class="ri-alert-line text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 text-lg">
+                    Konfirmasi Logout
+                </h3>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-6">
+                Apakah kamu yakin ingin keluar dari aplikasi?
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeLogoutModal()"
+                    class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+                    Batal
+                </button>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                        class="px-4 py-2 rounded-lg text-sm
+                           bg-danger text-white font-medium
+                           hover:bg-red-700 transition">
+                        Ya, Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- CONTENT -->
     <main class="flex-1 p-8 md:ml-64">
         @yield('content')
     </main>
+    <script>
+        const modal = document.getElementById('logoutModal');
+
+        function openLogoutModal() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeLogoutModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // klik backdrop
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) closeLogoutModal();
+        });
+
+        // tekan ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLogoutModal();
+        });
+    </script>
 
 </body>
 

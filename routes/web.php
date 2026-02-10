@@ -38,20 +38,23 @@ Route::get('/', fn() => redirect('/login'));
 */
 Route::middleware('auth')->get('/dashboard', function () {
     return match (Auth::user()->role) {
-        'admin' => view('admin.dashboard'),
-        'petugas' => view('petugas.dashboard'),
-        'peminjam' => view('peminjam.dashboard'),
+        'admin' => redirect()->route('admin.dashboard'),
+        'petugas' => redirect()->route('petugas.dashboard'),
+        'peminjam' => redirect()->route('peminjam.dashboard'),
         default => abort(403),
     };
 })->name('dashboard');
+
+
 
 /*
 |--------------------------------------------------------------------------
 | ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
+    Route::get('/dashboard', [AdminPeminjamanController::class, 'dashboard'])->name('dashboard');
     // MASTER DATA
     Route::resource('users', UserController::class);
     Route::resource('kategori', KategoriController::class);
@@ -59,6 +62,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // LAPORAN PEMINJAMAN
     Route::get('peminjaman', [AdminPeminjamanController::class, 'index'])->name('peminjaman.index');
+
+    // Monitoring / read-only peminjaman
+    Route::get('/peminjaman', [AdminPeminjamanController::class, 'index'])->name('peminjaman.index');
+
+    Route::get('log-aktivitas', [AdminPeminjamanController::class, 'logAktivitas'])->name('log-aktivitas');
 });
 
 /*
@@ -66,7 +74,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 | PETUGAS
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function () {
+Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function () {
+
+    // DASHBOARD PETUGAS
+    Route::get('/dashboard', [PetugasPeminjamanController::class, 'dashboard'])->name('dashboard');
 
     // DAFTAR ALAT
     Route::get('alat', [PetugasAlatController::class, 'index'])->name('alat.index');
@@ -78,19 +89,13 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
 
     // DAFTAR PENGEMBALIAN
     Route::get('pengembalian', [PetugasPeminjamanController::class, 'pengembalianIndex'])->name('pengembalian.index');
-
-    // PROSES PENGEMBALIAN
     Route::post('pengembalian/{peminjaman}/proses', [PetugasPeminjamanController::class, 'prosesPengembalian'])->name('pengembalian.proses');
-
-    // DETAIL PENGEMBALIAN
     Route::get('pengembalian/{peminjaman}', [PetugasPeminjamanController::class, 'showPengembalian'])->name('pengembalian.show');
     Route::post('pengembalian/{peminjaman}/proses-konfirmasi', [PetugasPeminjamanController::class, 'prosesPengembalian'])->name('pengembalian.proses-konfirmasi');
 
-    Route::get('laporan-peminjaman', [PetugasLaporanController::class, 'index'])
-        ->name('laporan-peminjaman');
-
-    Route::get('laporan/cetak', [PetugasLaporanController::class, 'cetak'])
-        ->name('laporan.cetak');
+    // LAPORAN
+    Route::get('laporan-peminjaman', [PetugasLaporanController::class, 'index'])->name('laporan-peminjaman');
+    Route::get('laporan/cetak', [PetugasLaporanController::class, 'cetak'])->name('laporan.cetak');
 });
 
 /*
@@ -98,7 +103,10 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
 | PEMINJAM
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('peminjam')->name('peminjam.')->group(function () {
+Route::middleware(['auth'])->prefix('peminjam')->name('peminjam.')->group(function () {
+
+    Route::get('/dashboard', [PeminjamPeminjamanController::class, 'dashboard'])
+        ->name('dashboard');
 
     // DAFTAR ALAT
     Route::get('alat', [PeminjamPeminjamanController::class, 'daftarAlat'])->name('alat.index');
