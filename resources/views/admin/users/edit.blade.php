@@ -82,7 +82,6 @@
                         </button>
                         <ul id="roleDropdownMenu"
                             class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-auto text-sm">
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" data-value="admin">Admin</li>
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" data-value="petugas">Petugas</li>
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" data-value="peminjam">Peminjam</li>
                         </ul>
