@@ -26,7 +26,7 @@ use App\Http\Controllers\Peminjam\PeminjamanController as PeminjamPeminjamanCont
 /*
 |--------------------------------------------------------------------------
 | ROOT
-|--------------------------------------------------------------------------
+|---------------------------------------------------------------------- ----
 */
 
 Route::get('/', fn() => redirect('/login'));
@@ -52,10 +52,10 @@ Route::middleware('auth')->get('/dashboard', function () {
 | ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/dashboard', [AdminPeminjamanController::class, 'dashboard'])->name('dashboard');
-    // MASTER DATA
+    // DATA MASTER
     Route::resource('users', UserController::class);
     Route::resource('kategori', KategoriController::class);
     Route::resource('alat', AlatController::class);
@@ -74,7 +74,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 | PETUGAS
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function () {
+Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')->group(function () {
 
     // DASHBOARD PETUGAS
     Route::get('/dashboard', [PetugasPeminjamanController::class, 'dashboard'])->name('dashboard');
@@ -103,7 +103,7 @@ Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function
 | PEMINJAM
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('peminjam')->name('peminjam.')->group(function () {
+Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam.')->group(function () {
 
     Route::get('/dashboard', [PeminjamPeminjamanController::class, 'dashboard'])
         ->name('dashboard');

@@ -16,19 +16,39 @@ class PeminjamanController extends Controller
     // =========================
     // DAFTAR PEMINJAMAN MENUNGGU
     // =========================
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->perPage ?? 10;
+
         $peminjamans = Peminjaman::with(['user', 'alat.kategori'])
             ->whereIn('status', [
                 'menunggu',
                 'dipinjam',
                 'menunggu_pengembalian'
             ])
+            ->when($request->search, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->whereHas('user', function ($u) use ($request) {
+                        $u->where('name', 'like', '%' . $request->search . '%');
+                    })
+                        ->orWhereHas('alat', function ($a) use ($request) {
+                            $a->where('nama', 'like', '%' . $request->search . '%');
+                        });
+                });
+            })
+            ->when($request->status, function ($q) use ($request) {
+                $q->where('status', $request->status);
+            })
+            ->when($request->tanggal, function ($q) use ($request) {
+                $q->whereDate('created_at', $request->tanggal);
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('petugas.peminjaman.index', compact('peminjamans'));
     }
+
 
     // =========================
     // SETUJUI PEMINJAMAN

@@ -14,11 +14,29 @@ use App\Models\Peminjaman;
 class PeminjamanController extends Controller
 {
     // Laporan peminjaman untuk admin
-    public function index()
+    public function index(Request $request)
     {
-        $peminjamans = Peminjaman::with(['user', 'alat'])->latest()->get();
+        $perPage = $request->perPage ?? 10;
+
+        $peminjamans = Peminjaman::with(['user', 'alat'])
+            ->when($request->search, function ($q) use ($request) {
+                $q->whereHas('alat', function ($q2) use ($request) {
+                    $q2->where('nama', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->status, function ($q) use ($request) {
+                $q->where('status', $request->status);
+            })
+            ->when($request->tanggal_pinjam, function ($q) use ($request) {
+                $q->whereDate('tanggal_pinjam', $request->tanggal_pinjam);
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
         return view('admin.peminjaman.index', compact('peminjamans'));
     }
+
 
     // Dashboard Admin
     public function dashboard()

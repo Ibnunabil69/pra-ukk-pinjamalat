@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Peminjam;
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
 use App\Models\Alat;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,10 +16,31 @@ class PeminjamanController extends Controller
     use LogsActivity; // ⬅️ aktifkan trait
 
     // DAFTAR ALAT
-    public function daftarAlat()
+    public function daftarAlat(Request $request)
     {
-        $alat = Alat::with('kategori')->get();
-        return view('peminjam.alat.index', compact('alat'));
+        $perPage = $request->perPage ?? 10;
+
+        $alat = Alat::with('kategori')
+            ->when($request->search, function ($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->search . '%');
+            })
+            ->when($request->kategori, function ($q) use ($request) {
+                $q->where('kategori_id', $request->kategori);
+            })
+            ->when($request->stok, function ($q) use ($request) {
+                if ($request->stok === 'tersedia') {
+                    $q->where('stok', '>', 0);
+                } elseif ($request->stok === 'habis') {
+                    $q->where('stok', 0);
+                }
+            })
+            ->orderBy('nama')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $kategoris = Kategori::orderBy('nama')->get();
+
+        return view('peminjam.alat.index', compact('alat', 'kategoris'));
     }
 
     // FORM AJUKAN PEMINJAMAN

@@ -13,6 +13,61 @@
             </div>
         </div>
 
+        <!-- FILTER -->
+        <form method="GET" class="bg-white p-5 rounded-xl border shadow-sm mb-6 flex flex-wrap items-end gap-4">
+
+            <!-- Cari Nama Peminjam / Alat -->
+            <div class="flex-1 min-w-[220px]">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cari</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama peminjam / alat..."
+                    class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Status -->
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="status"
+                    class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">Semua Status</option>
+                    @foreach (['menunggu', 'dipinjam', 'menunggu_pengembalian', 'dikembalikan', 'ditolak'] as $s)
+                        <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>
+                            {{ ucfirst(str_replace('_', ' ', $s)) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Tanggal Pengajuan -->
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                <input type="date" name="tanggal" value="{{ request('tanggal') }}"
+                    class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm">
+            </div>
+
+            <!-- Per Page -->
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tampilkan</label>
+                <select name="perPage" class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm">
+                    @foreach ([5, 10, 25, 50] as $n)
+                        <option value="{{ $n }}" {{ request('perPage', 10) == $n ? 'selected' : '' }}>
+                            {{ $n }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Action -->
+            <div class="flex gap-2 ml-auto">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                    Filter
+                </button>
+                <a href="{{ route('petugas.peminjaman.index') }}"
+                    class="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
+                    Reset
+                </a>
+            </div>
+        </form>
+
         <!-- TABLE -->
         <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
             <table class="w-full text-sm text-gray-700">

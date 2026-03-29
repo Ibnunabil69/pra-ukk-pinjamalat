@@ -75,7 +75,7 @@
             <!-- MASTER DATA -->
             <div>
                 <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                    Master Data
+                    Data Master
                 </p>
 
                 <div class="space-y-1">
@@ -92,16 +92,7 @@
                         <i class="ri-price-tag-3-line text-base"></i>
                         Kategori
                     </a>
-                </div>
-            </div>
 
-            <!-- TRANSAKSI -->
-            <div>
-                <p class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                    Transaksi
-                </p>
-
-                <div class="space-y-1">
                     <a href="{{ route('admin.peminjaman.index') }}"
                         class="flex items-center gap-3 px-3 py-2 rounded-lg
        {{ request()->routeIs('admin.peminjaman.*')
