@@ -48,10 +48,10 @@
             <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">User</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">User</th>
+                        <th class="px-6 py-3 text-left">Deskripsi</th>
+                        <th class="px-6 py-3 text-center">Waktu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -59,9 +59,9 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-3">
                                 {{ $loop->iteration + ($aktivitas->currentPage() - 1) * $aktivitas->perPage() }}</td>
-                            <td class="px-6 py-3">{{ $log->user->name }}</td>
+                            <td class="px-6 py-3">{{ $log->user->name ?? 'System' }}</td>
                             <td class="px-6 py-3">{{ $log->deskripsi }}</td>
-                            <td class="px-6 py-3">{{ $log->created_at->format('d M Y H:i') }}</td>
+                            <td class="px-6 py-3 text-center">{{ $log->created_at->format('d-m-Y H:i') }}</td>
                         </tr>
                     @empty
                         <tr>

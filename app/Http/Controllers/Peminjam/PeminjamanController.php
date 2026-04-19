@@ -22,16 +22,20 @@ class PeminjamanController extends Controller
 
         $alat = Alat::with('kategori')
             ->when($request->search, function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%');
+                $q->where(function($sub) use ($request) {
+                    $sub->where('nama', 'like', '%' . $request->search . '%')
+                        ->orWhere('kode_alat', '=', $request->search)
+                        ->orWhere('kode_alat', 'like', '%' . $request->search . '%');
+                });
             })
             ->when($request->kategori, function ($q) use ($request) {
                 $q->where('kategori_id', $request->kategori);
             })
             ->when($request->stok, function ($q) use ($request) {
                 if ($request->stok === 'tersedia') {
-                    $q->where('stok', '>', 0);
+                    $q->where('status', 'tersedia');
                 } elseif ($request->stok === 'habis') {
-                    $q->where('stok', 0);
+                    $q->where('status', 'dipinjam');
                 }
             })
             ->orderBy('nama')

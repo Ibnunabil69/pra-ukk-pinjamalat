@@ -82,11 +82,11 @@
             <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Alat</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">Nama Alat</th>
+                        <th class="px-6 py-3 text-left">Kategori</th>
+                        <th class="px-6 py-3 text-center">Stok</th>
+                        <th class="px-6 py-3 text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -94,23 +94,17 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-3">{{ $loop->iteration + ($alats->currentPage() - 1) * $alats->perPage() }}
                             </td>
-                            <td class="px-6 py-3">{{ $alat->nama }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap">{{ $alat->nama }}</td>
                             <td class="px-6 py-3">{{ $alat->kategori->nama ?? '-' }}</td>
-                            <td class="px-6 py-3">{{ $alat->stok }}</td>
-                            <td class="px-6 py-3">
-                                @if ($alat->stok > 0)
-                                    <span
-                                        class="px-2 py-1 rounded-full text-sm font-medium
-        bg-green-100 text-green-700">
-                                        Tersedia
-                                    </span>
-                                @else
-                                    <span
-                                        class="px-2 py-1 rounded-full text-sm font-medium
-        bg-red-100 text-red-700">
-                                        Kosong
-                                    </span>
-                                @endif
+                            <td class="px-6 py-3 text-center">{{ $alat->stok }}</td>
+                            <td class="px-6 py-3 text-center">
+                                @php
+                                    $color = $alat->stok > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                                    $label = $alat->stok > 0 ? 'Tersedia' : 'Kosong';
+                                @endphp
+                                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $color }}">
+                                    {{ $label }}
+                                </span>
                             </td>
                         </tr>
                     @empty

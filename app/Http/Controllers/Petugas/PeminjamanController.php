@@ -32,7 +32,8 @@ class PeminjamanController extends Controller
                         $u->where('name', 'like', '%' . $request->search . '%');
                     })
                         ->orWhereHas('alat', function ($a) use ($request) {
-                            $a->where('nama', 'like', '%' . $request->search . '%');
+                            $a->where('nama', 'like', '%' . $request->search . '%')
+                              ->orWhere('kode_alat', 'like', '%' . $request->search . '%');
                         });
                 });
             })
@@ -75,6 +76,9 @@ class PeminjamanController extends Controller
             'tanggal_kembali_target' => $request->tanggal_kembali_target,
         ]);
 
+        // Perbarui status fisik alat
+        $peminjaman->alat->update(['status' => 'dipinjam']);
+
         // LOG AKTIVITAS
         if ($peminjaman->alat && $peminjaman->user) {
             $this->logActivity(
@@ -115,10 +119,27 @@ class PeminjamanController extends Controller
 
         $peminjaman->alat->increment('stok', $peminjaman->jumlah);
 
+        $tanggalKembali = Carbon::now();
+        $targetKembali = Carbon::parse($peminjaman->tanggal_kembali_target);
+        
+        // Hitung selisih hari jika telat (tanggal pengembalian lebih besar dari target)
+        $denda = 0;
+        $tanggalKembaliHanyaTanggal = $tanggalKembali->copy()->startOfDay();
+        $targetHanyaTanggal = $targetKembali->copy()->startOfDay();
+
+        if ($tanggalKembaliHanyaTanggal->greaterThan($targetHanyaTanggal)) {
+            $selisihHari = $tanggalKembaliHanyaTanggal->diffInDays($targetHanyaTanggal);
+            $denda = $selisihHari * 2000; // Denda Rp 2.000 per hari
+        }
+
         $peminjaman->update([
             'status' => 'dikembalikan',
-            'tanggal_kembali' => Carbon::now(),
+            'tanggal_kembali' => $tanggalKembali,
+            'denda' => $denda,
         ]);
+
+        // Kembalikan status fisik alat
+        $peminjaman->alat->update(['status' => 'tersedia']);
 
         // LOG AKTIVITAS
         if ($peminjaman->alat && $peminjaman->user) {

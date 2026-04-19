@@ -11,6 +11,7 @@ class Alat extends Model
 
     protected $fillable = [
         'nama',
+        'kode_alat',
         'kategori_id',
         'stok',
         'status',
@@ -25,14 +26,32 @@ class Alat extends Model
     }
 
     /**
+     * Relasi ke peminjaman
+     */
+    public function peminjamans()
+    {
+        return $this->hasMany(Peminjaman::class);
+    }
+
+    /**
      * Otomatis set status berdasarkan stok
-     * - stok > 0  => tersedia
-     * - stok == 0 => kosong
      */
     protected static function booted()
     {
-        static::saving(function ($alat) {
-            $alat->status = $alat->stok > 0 ? 'tersedia' : 'kosong';
+        static::creating(function ($alat) {
+            // Generate kode_alat otomatis jika kosong
+            // PENTING: Untuk bulk create, kita butuh logika yang tidak tabrakan
+            if (empty($alat->kode_alat)) {
+                $count = static::count();
+                $alat->kode_alat = 'ALT-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+                
+                // Cek lagi jika sudah ada (antisipasi collision)
+                while (static::where('kode_alat', $alat->kode_alat)->exists()) {
+                    $count++;
+                    $alat->kode_alat = 'ALT-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
         });
+
     }
 }

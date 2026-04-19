@@ -69,10 +69,9 @@
             <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Kategori
-                        </th>
-                        <th class="px-6 py-3 text-center font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">Nama Kategori</th>
+                        <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -81,7 +80,7 @@
                             <td class="px-6 py-3">
                                 {{ $loop->iteration + ($kategoris->currentPage() - 1) * $kategoris->perPage() }}</td>
                             <td class="px-6 py-3">{{ $kategori->nama }}</td>
-                            <td class="px-0 py-3">
+                            <td class="px-6 py-3">
                                 <div class="flex justify-center gap-2">
                                     <a href="{{ route('admin.kategori.edit', $kategori) }}"
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5">

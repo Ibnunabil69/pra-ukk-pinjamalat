@@ -5,26 +5,50 @@ namespace App\Http\Controllers\Petugas;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Peminjaman;
-use App\Traits\LogsActivity; // ⬅️ panggil trait
+use App\Traits\LogsActivity;
 
 class LaporanController extends Controller
 {
-    use LogsActivity; // ⬅️ aktifkan trait
+    use LogsActivity;
 
-    // Tampilkan laporan dengan pagination
-    public function index()
+    // 📊 HALAMAN LAPORAN + FILTER
+    public function index(Request $request)
     {
-        $peminjamans = Peminjaman::with('user', 'alat.kategori')
-            ->orderBy('tanggal_pinjam', 'desc')
-            ->paginate(10);
+        $query = Peminjaman::with('user', 'alat.kategori');
 
-        // ⬅️ LOG AKTIVITAS
-        $this->logActivity("Melihat daftar laporan peminjaman");
+        // 🔍 SEARCH (nama peminjam / alat)
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('user', function ($q2) use ($request) {
+                    $q2->where('name', 'like', '%' . $request->search . '%');
+                })
+                    ->orWhereHas('alat', function ($q2) use ($request) {
+                        $q2->where('nama', 'like', '%' . $request->search . '%');
+                    });
+            });
+        }
+
+        // 📌 STATUS
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // 📅 TANGGAL
+        if ($request->from && $request->to) {
+            $query->whereBetween('tanggal_pinjam', [$request->from, $request->to]);
+        }
+
+        $peminjamans = $query->orderBy('tanggal_pinjam', 'desc')->paginate(10);
+
+        // biar pagination tetap bawa filter
+        $peminjamans->appends($request->all());
+
+        $this->logActivity("Melihat laporan peminjaman dengan filter");
 
         return view('petugas.laporan.index', compact('peminjamans'));
     }
 
-    // Cetak laporan berdasarkan periode
+    // 🧾 CETAK PDF (ikut semua filter)
     public function cetak(Request $request)
     {
         $request->validate([
@@ -32,18 +56,38 @@ class LaporanController extends Controller
             'to' => 'required|date|after_or_equal:from',
         ]);
 
-        $from = $request->from;
-        $to = $request->to;
+        $query = Peminjaman::with('user', 'alat.kategori');
 
-        $peminjamans = Peminjaman::with('user', 'alat.kategori')
-            ->whereDate('tanggal_pinjam', '>=', $from)
-            ->whereDate('tanggal_pinjam', '<=', $to)
-            ->orderBy('tanggal_pinjam', 'asc')
-            ->get();
+        // 🔍 SEARCH
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('user', function ($q2) use ($request) {
+                    $q2->where('name', 'like', '%' . $request->search . '%');
+                })
+                    ->orWhereHas('alat', function ($q2) use ($request) {
+                        $q2->where('nama_alat', 'like', '%' . $request->search . '%');
+                    });
+            });
+        }
 
-        // ⬅️ LOG AKTIVITAS
-        $this->logActivity("Mencetak laporan peminjaman dari {$from} sampai {$to}");
+        // 📌 STATUS
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
 
-        return view('petugas.laporan.cetak', compact('peminjamans', 'from', 'to'));
+        // 📅 TANGGAL (WAJIB untuk cetak)
+        $query->whereBetween('tanggal_pinjam', [$request->from, $request->to]);
+
+        $peminjamans = $query->orderBy('tanggal_pinjam', 'asc')->get();
+
+        $this->logActivity(
+            "Cetak laporan | Dari: {$request->from} - {$request->to} | Search: {$request->search} | Status: {$request->status}"
+        );
+
+        return view('petugas.laporan.cetak', [
+            'peminjamans' => $peminjamans,
+            'from' => $request->from,
+            'to' => $request->to
+        ]);
     }
 }

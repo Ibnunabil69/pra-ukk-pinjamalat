@@ -82,12 +82,13 @@
             <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Alat</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">Nama Alat</th>
+                        <th class="px-6 py-3 text-left">Kode/Barcode</th>
+                        <th class="px-6 py-3 text-left">Kategori</th>
+                        <th class="px-6 py-3 text-left">Stok</th>
+                        <th class="px-6 py-3 text-left">Status</th>
+                        <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -95,26 +96,47 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-3">{{ $loop->iteration + ($alats->currentPage() - 1) * $alats->perPage() }}
                             </td>
-                            <td class="px-6 py-3">{{ $alat->nama }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap">{{ $alat->nama }}</td>
+                            <td class="px-6 py-3">
+                                <div class="flex flex-col items-start gap-1">
+                                    <span
+                                        class="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded border">{{ $alat->kode_alat }}</span>
+                                    <svg class="barcode-img" data-value="{{ $alat->kode_alat }}"></svg>
+                                </div>
+                            </td>
                             <td class="px-6 py-3">{{ $alat->kategori->nama ?? '-' }}</td>
                             <td class="px-6 py-3">{{ $alat->stok }}</td>
                             <td class="px-6 py-3">
                                 @php
-                                    $color =
-                                        $alat->status === 'tersedia'
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-yellow-100 text-yellow-700';
+                                    $color = match (strtolower($alat->status)) {
+                                        'tersedia' => 'bg-green-100 text-green-700',
+                                        'dipinjam' => 'bg-blue-100 text-blue-700',
+                                        default => 'bg-gray-100 text-gray-700',
+                                    };
                                 @endphp
-                                <span class="px-2 py-1 rounded-full text-sm font-medium {{ $color }}">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $color }}">
                                     {{ ucfirst($alat->status) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 text-right">
+                            <td class="px-6 py-3">
                                 <div class="flex justify-center gap-2">
+                                    <button onclick="printBarcode('{{ $alat->kode_alat }}', '{{ $alat->nama }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 text-sm leading-5">
+                                        <i class="ri-printer-line"></i> Cetak
+                                    </button>
+
+                                    @if($alat->status === 'tersedia')
                                     <a href="{{ route('admin.alat.edit', $alat) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5 transition shadow-sm">
                                         <i class="ri-pencil-line"></i> Edit
                                     </a>
+                                    @else
+                                    <button disabled 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-200 text-gray-400 rounded-lg text-sm leading-5 cursor-not-allowed"
+                                        title="Alat sedang dipinjam">
+                                        <i class="ri-pencil-line"></i> Edit
+                                    </button>
+                                    @endif
                                     <form action="{{ route('admin.alat.destroy', $alat) }}" method="POST"
                                         onsubmit="return confirm('Hapus alat ini?')">
                                         @csrf
@@ -129,7 +151,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center text-gray-500">Belum ada alat</td>
+                            <td colspan="7" class="py-12 text-center text-gray-500">Belum ada alat</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -151,10 +173,8 @@
 
                     {{-- First & Previous --}}
                     @if ($alats->onFirstPage())
-                        <span
-                            class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&laquo;</span>
-                        <span
-                            class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&lsaquo;</span>
+                        <span class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&laquo;</span>
+                        <span class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&lsaquo;</span>
                     @else
                         <a href="{{ $alats->appends(request()->query())->url(1) }}"
                             class="px-2 sm:px-3 py-1 rounded-lg bg-white border hover:bg-gray-50">&laquo;</a>
@@ -191,10 +211,8 @@
                         <a href="{{ $alats->appends(request()->query())->url($alats->lastPage()) }}"
                             class="px-2 sm:px-3 py-1 rounded-lg bg-white border hover:bg-gray-50">&raquo;</a>
                     @else
-                        <span
-                            class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&rsaquo;</span>
-                        <span
-                            class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&raquo;</span>
+                        <span class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&rsaquo;</span>
+                        <span class="px-2 sm:px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&raquo;</span>
                     @endif
                 </div>
             </div>
@@ -202,8 +220,60 @@
 
     </div>
 
-    <!-- JS Custom Dropdown -->
+    <!-- PRINT BARCODE SCRIPT -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script>
+        // Generate barcodes on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.barcode-img').forEach(el => {
+                JsBarcode(el, el.getAttribute('data-value'), {
+                    format: "CODE128",
+                    width: 1.5,
+                    height: 30,
+                    displayValue: false
+                });
+            });
+        });
+
+        function printBarcode(code, name) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>Cetak Barcode - ${name}</title>
+                                <style>
+                                    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+                                    .label { border: 1px dashed #ccc; padding: 20px; text-align: center; }
+                                    .name { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+                                    .code { font-size: 12px; margin-top: 5px; }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="label">
+                                    <div class="name">${name}</div>
+                                    <svg id="barcode"></svg>
+                                    <div class="code">${code}</div>
+                                </div>
+                                <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+                                <script>
+                                    JsBarcode("#barcode", "${code}", {
+                                        format: "CODE128",
+                                        width: 2,
+                                        height: 60,
+                                        displayValue: false
+                                    });
+                                    window.onload = () => {
+                                        window.print();
+                                        setTimeout(() => window.close(), 500);
+                                    };
+                                <\/script>
+                            </body>
+                        </html>
+                    `);
+            printWindow.document.close();
+        }
+
+        // JS Custom Dropdown
         function setupDropdown(btnId, menuId, labelId, inputId) {
             const btn = document.getElementById(btnId);
             const menu = document.getElementById(menuId);

@@ -47,6 +47,18 @@
                     @enderror
                 </div>
 
+                <!-- Kode Alat -->
+                <div class="mb-4">
+                    <label for="kode_alat" class="block text-sm font-medium text-gray-700 mb-1">Kode Alat (Barcode)</label>
+                    <input type="text" name="kode_alat" id="kode_alat" value="{{ old('kode_alat') }}"
+                        class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('kode_alat') border-red-500 @enderror"
+                        placeholder="Kosongkan untuk generate otomatis">
+                    <p class="mt-1 text-xs text-gray-500">Jika dikosongkan, sistem akan membuat kode otomatis (ALT-000X).</p>
+                    @error('kode_alat')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Kategori -->
                 <div class="mb-4">
                     <label for="kategori_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
@@ -64,12 +76,13 @@
                     @enderror
                 </div>
 
-                <!-- Stok -->
+                <!-- Jumlah Unit (Bulk Create) -->
                 <div class="mb-4">
-                    <label for="stok" class="block text-sm font-medium text-gray-700 mb-1">Stok</label>
+                    <label for="stok" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Unit</label>
                     <input type="number" name="stok" id="stok" value="{{ old('stok', 1) }}"
                         class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('stok') border-red-500 @enderror"
-                        placeholder="Masukkan jumlah stok" min="0">
+                        placeholder="Masukkan jumlah unit (akan dibuat unik)" min="1">
+                    <p class="mt-1 text-xs text-gray-500 italic">Sistem akan membuat banyak data unik jika Anda mengisi lebih dari 1.</p>
                     @error('stok')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

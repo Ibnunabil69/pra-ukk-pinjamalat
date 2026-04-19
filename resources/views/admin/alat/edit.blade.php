@@ -21,71 +21,78 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Nama Alat -->
-                <div class="mb-4">
-                    <label for="nama" class="block text-sm font-medium text-gray-700 mb-1">Nama Alat</label>
-                    <input type="text" name="nama" id="nama" value="{{ old('nama', $alat->nama) }}"
-                        class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('nama') border-red-500 @enderror"
-                        placeholder="Masukkan nama alat">
-                    @error('nama')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                @if($alat->status === 'dipinjam')
+                <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="ri-error-warning-line text-yellow-400 text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Perhatian:</strong> Alat ini sedang dipinjam. Anda tidak dapat mengubah data identitas alat sampai alat dikembalikan.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+                @endif
 
-                <!-- Kategori -->
-                <div class="mb-4">
-                    <label for="kategori_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                    <select name="kategori_id" id="kategori_id"
-                        class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('kategori_id') border-red-500 @enderror">
-                        <option value="">Pilih kategori</option>
-                        @foreach ($kategoris as $kategori)
-                            <option value="{{ $kategori->id }}"
-                                {{ old('kategori_id', $alat->kategori_id) == $kategori->id ? 'selected' : '' }}>
-                                {{ $kategori->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('kategori_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                <div class="{{ $alat->status === 'dipinjam' ? 'opacity-50 pointer-events-none' : '' }}">
+                    <!-- Nama Alat -->
+                    <div class="mb-4">
+                        <label for="nama" class="block text-sm font-medium text-gray-700 mb-1">Nama Alat</label>
+                        <input type="text" name="nama" id="nama" value="{{ old('nama', $alat->nama) }}"
+                            class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('nama') border-red-500 @enderror"
+                            placeholder="Masukkan nama alat" {{ $alat->status === 'dipinjam' ? 'readonly' : '' }}>
+                        @error('nama')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Stok -->
-                <div class="mb-4">
-                    <label for="stok" class="block text-sm font-medium text-gray-700 mb-1">Stok</label>
-                    <input type="number" name="stok" id="stok" value="{{ old('stok', $alat->stok) }}"
-                        class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('stok') border-red-500 @enderror"
-                        placeholder="Masukkan jumlah stok" min="0">
-                    @error('stok')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- Kode Alat -->
+                    <div class="mb-4">
+                        <label for="kode_alat" class="block text-sm font-medium text-gray-700 mb-1">Kode Alat (Barcode)</label>
+                        <input type="text" name="kode_alat" id="kode_alat" value="{{ old('kode_alat', $alat->kode_alat) }}"
+                            class="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('kode_alat') border-red-500 @enderror"
+                            placeholder="Masukkan kode barcode" {{ $alat->status === 'dipinjam' ? 'readonly' : '' }}>
+                        @error('kode_alat')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Status -->
-                <div class="mb-4">
-                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select name="status" id="status"
-                        class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('status') border-red-500 @enderror">
-                        <option value="tersedia" {{ old('status', $alat->status) == 'tersedia' ? 'selected' : '' }}>
-                            Tersedia</option>
-                        <option value="dipinjam" {{ old('status', $alat->status) == 'dipinjam' ? 'selected' : '' }}>
-                            Dipinjam</option>
-                    </select>
-                    @error('status')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    <!-- Kategori -->
+                    <div class="mb-6">
+                        <label for="kategori_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <select name="kategori_id" id="kategori_id"
+                            class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('kategori_id') border-red-500 @enderror"
+                            {{ $alat->status === 'dipinjam' ? 'disabled' : '' }}>
+                            <option value="">Pilih kategori</option>
+                            @foreach ($kategoris as $kategori)
+                                <option value="{{ $kategori->id }}"
+                                    {{ old('kategori_id', $alat->kategori_id) == $kategori->id ? 'selected' : '' }}>
+                                    {{ $kategori->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('kategori_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Submit & Reset -->
-                <div class="flex justify-end gap-2">
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    @if($alat->status === 'tersedia')
                     <button type="button" id="resetBtn"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm leading-5">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm leading-5 transition">
                         <i class="ri-refresh-line"></i> Batal
                     </button>
                     <button type="button" id="submitBtn"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm leading-5">
-                        <i class="ri-check-line"></i> Simpan
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5 shadow-sm transition">
+                        <i class="ri-check-line font-bold"></i> Simpan Perubahan
                     </button>
+                    @else
+                    <p class="text-xs text-gray-400 italic">Tombol simpan dinonaktifkan karena alat sedang dipinjam</p>
+                    @endif
                 </div>
             </form>
         </div>

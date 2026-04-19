@@ -90,11 +90,11 @@
             <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-center font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">Nama</th>
+                        <th class="px-6 py-3 text-left">Email</th>
+                        <th class="px-6 py-3 text-left">Role</th>
+                        <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -104,7 +104,7 @@
                             </td>
                             <td class="px-6 py-3">{{ $user->name }}</td>
                             <td class="px-6 py-3">{{ $user->email }}</td>
-                            <td class="px-6 py-3 text-start">
+                            <td class="px-6 py-3">
                                 @php
                                     switch ($user->role) {
                                         case 'admin':
@@ -120,24 +120,26 @@
                                             $color = 'bg-gray-100 text-gray-700';
                                     }
                                 @endphp
-                                <span class="px-2 py-1 rounded-full text-sm font-medium {{ $color }}">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $color }}">
                                     {{ ucfirst($user->role) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 text-center space-x-2">
-                                <a href="{{ route('admin.users.edit', $user) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5">
-                                    <i class="ri-pencil-line"></i> Edit
-                                </a>
-                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                    class="inline-block" onsubmit="return confirm('Hapus user ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm leading-5">
-                                        <i class="ri-delete-bin-line"></i> Hapus
-                                    </button>
-                                </form>
+                            <td class="px-6 py-3 text-center">
+                                <div class="flex justify-center gap-2">
+                                    <a href="{{ route('admin.users.edit', $user) }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm leading-5">
+                                        <i class="ri-pencil-line"></i> Edit
+                                    </a>
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                        onsubmit="return confirm('Hapus user ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" {{ $user->role === 'admin' ? 'disabled' : '' }}
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 {{ $user->role === 'admin' ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700' }} text-white rounded-lg text-sm leading-5 transition-colors">
+                                            <i class="ri-delete-bin-line"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

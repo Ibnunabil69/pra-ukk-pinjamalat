@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Petugas Dashboard') | Equiply</title>
     <link rel="icon" href="{{ asset('assets/favicon-equily.svg') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('assets/favicon-equiply.svg') }}" type="image/x-icon">
@@ -16,11 +17,32 @@
         rel="stylesheet">
 
     <!-- Remix Icon -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Poppins', sans-serif;
+        }
+
+        /* Paksa sidebar agar selalu full height di semua perangkat */
+        #sidebar {
+            height: 100vh !important;
+            height: 100dvh !important;
+            top: 0 !important;
+            bottom: 0 !important;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -30,16 +52,23 @@
 
     <!-- SIDEBAR -->
     <aside
-        class="fixed top-0 left-0 h-screen w-64 bg-surface border-r border-border flex flex-col shadow-soft
+        class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col shadow-soft
                transform -translate-x-full md:translate-x-0 transition-transform duration-300"
         id="sidebar">
 
-        <!-- LOGO & ROLE -->
-        <div class="px-6 pb-4 border-b border-border">
-            <img src="{{ asset('assets/logo-web.png') }}" alt="Equiply"
-                class="h-20 max-w-[200px] object-contain select-none">
+        <!-- LOGO & ROLE & CLOSE BUTTON (Mobile) -->
+        <div class="px-6 pb-4 pt-4 border-b border-border">
+            <div class="flex items-center justify-between mb-2">
+                <img src="{{ asset('assets/logo-web.png') }}" alt="Equiply"
+                    class="h-16 max-w-[160px] object-contain select-none">
+                
+                <button onclick="toggleSidebar()" class="md:hidden p-2 text-gray-400 hover:text-red-500 transition">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
 
-            <div class="mt-2 flex items-center gap-2 text-xs text-text-muted">
+            <!-- Role Info -->
+            <div class="flex items-center gap-2 text-xs text-text-muted mt-2">
                 <span
                     class="inline-flex items-center justify-center
                            w-7 h-7 rounded-full
@@ -57,7 +86,7 @@
         </div>
 
         <!-- MENU -->
-        <nav class="flex-1 px-3 py-4 text-sm space-y-6">
+        <nav class="flex-1 px-3 py-4 text-sm space-y-6 overflow-y-auto custom-scrollbar">
 
             <!-- DASHBOARD -->
             <a href="{{ route('petugas.dashboard') }}"
@@ -164,17 +193,45 @@
         </div>
     </div>
 
+    <!-- OVERLAY MOBILE -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
     <!-- TOGGLE MOBILE -->
-    <button class="fixed top-4 left-4 z-50 md:hidden p-2 bg-primary-600 text-white rounded-lg" id="sidebarToggle">
-        <i class="ri-menu-line text-xl"></i>
+    <!-- TOGGLE MOBILE -->
+    <button class="fixed z-50 md:hidden p-4 bg-white text-gray-900 border border-gray-200 rounded-2xl shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center" id="sidebarToggle" style="bottom: 30px !important; right: 30px !important; top: auto !important; left: auto !important;">
+        <i class="ri-menu-line text-2xl"></i>
     </button>
 
     <!-- CONTENT -->
-    <main class="flex-1 p-8 md:ml-64">
+    <main class="flex-1 p-4 md:p-8 md:ml-64 w-full min-w-0">
         @yield('content')
     </main>
 
     <script>
+        // SIDEBAR TOGGLE LOGIC
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+
+            // Kontrol visibilitas tombol hamburger agar tidak menumpuk dengan logo
+            if (!isOpen) {
+                sidebarToggle.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+            } else {
+                sidebarToggle.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+            }
+        }
+
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        sidebarOverlay?.addEventListener('click', toggleSidebar);
+
+        // LOGOUT MODAL LOGIC
         const modal = document.getElementById('logoutModal');
 
         function openLogoutModal() {

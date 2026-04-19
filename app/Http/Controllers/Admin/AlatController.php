@@ -19,7 +19,10 @@ class AlatController extends Controller
 
         // Filter pencarian
         if ($request->search) {
-            $query->where('nama', 'like', '%' . $request->search . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_alat', 'like', '%' . $request->search . '%');
+            });
         }
 
         // Filter kategori
@@ -43,27 +46,51 @@ class AlatController extends Controller
         return view('admin.alat.create', compact('kategoris'));
     }
 
-    // Simpan alat baru
+    // Simpan alat baru (Dukungan Bulk Create)
     public function store(Request $request)
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'kode_alat' => 'nullable|string|max:50|unique:alats,kode_alat',
             'kategori_id' => 'required|exists:kategoris,id',
-            'stok' => 'required|integer|min:0',
+            'stok' => 'required|integer|min:1', // Jumlah unit yang ingin dibuat
             'status' => 'required|in:tersedia,dipinjam',
         ]);
 
-        $alat = Alat::create($request->all());
+        $jumlah = (int) $request->stok;
+        $namaAsli = $request->nama;
+
+        // Loop untuk membuat unit satu per satu
+        for ($i = 1; $i <= $jumlah; $i++) {
+            $data = $request->all();
+            
+            // Jika lebih dari 1 unit, tambahkan akhiran angka (misal: Palu 1, Palu 2)
+            if ($jumlah > 1) {
+                $data['nama'] = $namaAsli . ' ' . $i;
+                // Kosongkan kode_alat agar digenerate unik oleh Modal Booted
+                $data['kode_alat'] = null; 
+            }
+
+            // Set stok per record selalu 1
+            $data['stok'] = 1;
+
+            $alat = Alat::create($data);
+        }
 
         // Catat log
-        $this->logActivity("Menambahkan alat '{$alat->nama}'");
+        $this->logActivity("Menambahkan massal alat '{$namaAsli}' sebanyak {$jumlah} unit");
 
-        return redirect()->route('admin.alat.index')->with('success', 'Alat berhasil ditambahkan.');
+        return redirect()->route('admin.alat.index')->with('success', "{$jumlah} unit {$namaAsli} berhasil ditambahkan secara unik.");
     }
 
     // Form edit alat
     public function edit(Alat $alat)
     {
+        // CEK STATUS: Jika sedang dipinjam, tidak boleh diedit
+        if ($alat->status === 'dipinjam') {
+            return redirect()->route('admin.alat.index')->with('error', 'Alat yang sedang dipinjam tidak dapat diubah datanya.');
+        }
+
         $kategoris = Kategori::all();
         return view('admin.alat.edit', compact('alat', 'kategoris'));
     }
@@ -71,14 +98,20 @@ class AlatController extends Controller
     // Update data alat
     public function update(Request $request, Alat $alat)
     {
+        // CEK STATUS: Keamanan server side
+        if ($alat->status === 'dipinjam') {
+            return redirect()->route('admin.alat.index')->with('error', 'Alat yang sedang dipinjam tidak dapat diubah datanya.');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
+            'kode_alat' => 'nullable|string|max:50|unique:alats,kode_alat,' . $alat->id,
             'kategori_id' => 'required|exists:kategoris,id',
-            'stok' => 'required|integer|min:0',
-            'status' => 'required|in:tersedia,dipinjam',
+            // Stok dan Status dihapus dari proteksi manual di sini
         ]);
 
-        $alat->update($request->all());
+        // Update hanya data identitas
+        $alat->update($request->only(['nama', 'kode_alat', 'kategori_id']));
 
         // Catat log
         $this->logActivity("Mengubah alat '{$alat->nama}'");
